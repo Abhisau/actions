@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -e
+
+BUCKET=${BUCKET:-cs50.harvard.edu}
+if [[ -z $PREFIX ]]; then
+    # :repo/:branch
+    PREFIX="${GITHUB_REPOSITORY##*/}/${GITHUB_REF##refs/heads/}"
+fi
+
+bundle install
+bundle exec jekyll build --baseurl "/$PREFIX"
+
+s3cmd --access_key="$AWS_ACCESS_KEY_ID" --no-mime-magic --no-preserve --secret_key="$AWS_SECRET_ACCESS_KEY" sync --delete-removed _site/ "s3://$BUCKET/$PREFIX/"
